@@ -1,9 +1,14 @@
-<script setup>
-</script>
-
 <template>
+  <div>
+    <AppHeader />
+    <main>
+      <router-view />
+    </main>
+    <AppFooter />
+  </div>
 </template>
 
-<style scoped>
-
-</style>
+<script setup>
+import AppHeader from './components/Header.vue'
+import AppFooter from './components/Footer.vue'
+</script>

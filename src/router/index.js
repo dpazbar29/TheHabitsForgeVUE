@@ -1,8 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { auth } from '../firebase'
 import Home from '../views/Home.vue'
-import Contacto from '../views/Contacto.vue'
-import Perfil from '../views/Perfil.vue'
+import Contacto from '../views/Contact.vue'
+import Perfil from '../views/Profile.vue'
 import Login from '../views/Login.vue'
 import Register from '../views/Register.vue'
 
