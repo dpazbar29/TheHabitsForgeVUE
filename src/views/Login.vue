@@ -18,7 +18,15 @@ const onSubmit = async (values, { resetForm }) => {
         resetForm()
         router.push('/perfil')
     } catch (error) {
-        errorMsg.value = error.message || 'Error al iniciar sesión'
+        if (error.code === 'auth/user-not-found') {
+            errorMsg.value = 'El correo no está vinculado a ninguna cuenta.'
+        } else if (error.code === 'auth/wrong-password') {
+            errorMsg.value = 'La contraseña no es correcta para este correo.'
+        } else if (error.code === 'auth/invalid-email') {
+            errorMsg.value = 'El email no es válido.'
+        } else {
+            errorMsg.value = error.message || 'Error al iniciar sesión'
+        }
     }
 }
 </script>
