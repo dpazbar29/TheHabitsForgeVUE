@@ -8,7 +8,7 @@ const showModal = ref(false);
 </script>
 
 <template>
-    <div class="max-w-3xl mx-auto px-4 py-8">
+    <div class="max-w-3xl mx-auto px-4 py-8 min-h-screen flex flex-col">
         <h1 class="text-3xl font-bold text-blue-800 mb-8">Mi Perfil</h1>
     
         <StatsPanel class="mb-8" />

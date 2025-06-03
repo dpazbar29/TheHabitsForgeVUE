@@ -22,7 +22,7 @@ const onSubmit = async (values, { resetForm }) => {
 </script>
 
 <template>
-    <section class="flex items-center justify-center min-h-[70vh] bg-gradient-to-br from-blue-50 to-blue-100">
+    <section class="flex items-center justify-center min-h-screen flex flex-col bg-gradient-to-br from-blue-50 to-blue-100">
         <div class="w-full max-w-lg bg-white rounded-xl shadow-lg p-8">
             <h2 class="text-2xl font-bold text-blue-800 mb-6 text-center">Contacto</h2>
             <Form :validation-schema="toTypedSchema(contactSchema)" @submit="onSubmit">

@@ -19,7 +19,6 @@ function handleLogout() {
         </div>
         <nav>
             <span v-if="userStore.userData">
-                Bienvenido, {{ userStore.userData.email }}
                 <button class="mx-2" @click="router.push('/perfil')">Perfil</button>
                 <button class="mx-2" @click="handleLogout">Cerrar sesión</button>
             </span>

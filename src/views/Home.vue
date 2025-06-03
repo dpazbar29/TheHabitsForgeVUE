@@ -1,5 +1,5 @@
 <template>
-    <section class="bg-gradient-to-br from-blue-50 to-blue-100 min-h-[70vh] flex flex-col items-center justify-center px-4 py-16">
+    <section class="bg-gradient-to-br from-blue-50 to-blue-100 items-center justify-center min-h-screen flex flex-col">
         <div class="max-w-2xl text-center">
             <h1 class="text-4xl md:text-5xl font-extrabold text-blue-900 mb-6">
                 TheHabitsForge
