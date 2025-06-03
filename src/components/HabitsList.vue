@@ -23,10 +23,10 @@ onUnmounted(() => {
             v-for="habit in habitsStore.habits" 
             :key="habit.id" 
             :habit="habit" 
-            class="bg-white p-4 rounded-lg shadow-md"
+            :class="'bg-white dark:bg-gray-900 p-4 rounded-lg shadow-md transition-colors'"
         />
 
-        <div v-if="habitsStore.habits.length === 0" class="text-center text-gray-500 py-8">
+        <div v-if="habitsStore.habits.length === 0" class="text-center text-gray-500 dark:text-gray-400 py-8 transition-colors">
             No tienes hábitos registrados. ¡Crea tu primer hábito!
         </div>
     </div>

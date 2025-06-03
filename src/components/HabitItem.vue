@@ -33,35 +33,34 @@ const deleteHabit = async () => {
 </script>
 
 <template>
-    <div class="bg-white p-4 rounded-lg shadow mb-4">
+    <div class="bg-white dark:bg-gray-900 p-4 rounded-lg shadow mb-4 transition-colors">
         <div class="flex justify-between items-center">
             <div>
-                <h3 class="text-lg font-semibold">{{ habit.name }}</h3>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ habit.name }}</h3>
                 <div class="flex items-center gap-2 mt-2">
-                    <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+                    <span class="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-sm">
                         🔥 {{ habit.currentStreak }} días
                     </span>
-                    <span class="text-sm text-gray-500">
+                    <span class="text-sm text-gray-500 dark:text-gray-400">
                         Récord: {{ habit.longestStreak }} días
                     </span>
                 </div>
             </div>
             
             <div class="flex items-center gap-4">
-                <!-- Botones de acción -->
                 <div v-if="habit.type === 'quantitative'" class="flex items-center gap-2">
                     <input
                         v-model.number="currentValue"
                         type="number"
                         :min="1"
                         :max="habit.targetValue"
-                        class="w-20 px-2 py-1 border rounded"
+                        class="w-20 px-2 py-1 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-600 transition-colors"
                         placeholder="Ej: 5"
                     >
-                    <span>/ {{ habit.targetValue }}</span>
+                    <span class="text-gray-700 dark:text-gray-200">/ {{ habit.targetValue }}</span>
                     <button 
                         @click="markCompleted"
-                        class="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600"
+                        class="px-3 py-1 bg-green-500 dark:bg-green-600 text-white rounded hover:bg-green-600 dark:hover:bg-green-700 transition-colors"
                     >
                         ✔
                     </button>
@@ -70,15 +69,14 @@ const deleteHabit = async () => {
                 <button 
                     v-else
                     @click="markCompleted"
-                    class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+                    class="px-4 py-2 bg-green-500 dark:bg-green-600 text-white rounded hover:bg-green-600 dark:hover:bg-green-700 transition-colors"
                 >
                     {{ habit.history.some(h => h.date === new Date().toISOString().split('T')[0]) ? '✅' : 'Marcar' }}
                 </button>
 
-                <!-- Botón de eliminar -->
                 <button 
                     @click="deleteHabit"
-                    class="px-3 py-2 text-red-500 hover:text-red-700"
+                    class="px-3 py-2 text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors"
                     title="Eliminar hábito"
                 >
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -89,3 +87,4 @@ const deleteHabit = async () => {
         </div>
     </div>
 </template>
+

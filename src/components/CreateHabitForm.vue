@@ -66,8 +66,8 @@ const handleSubmit = async (values) => {
 </script>
 
 <template>
-    <div class="bg-white p-6 rounded-lg shadow-md mb-8">
-        <h3 class="text-xl font-bold text-blue-800 mb-4">Nuevo Hábito</h3>
+    <div class="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-md mb-8 transition-colors">
+        <h3 class="text-xl font-bold text-blue-800 dark:text-blue-300 mb-4">Nuevo Hábito</h3>
         <Form 
             :validation-schema="schema" 
             :initial-values="initialValues" 
@@ -75,25 +75,25 @@ const handleSubmit = async (values) => {
             v-slot="{ values }"
         >
             <div class="mb-4">
-                <label class="block text-gray-700 mb-2">Nombre del hábito</label>
+                <label class="block text-gray-700 dark:text-gray-200 mb-2">Nombre del hábito</label>
                 <Field 
                     name="name" 
                     type="text" 
-                    class="w-full p-2 border rounded focus:ring-2 focus:ring-blue-400"
+                    class="w-full p-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-600 transition-colors"
                     placeholder="Ej: Beber agua"
                 />
                 <ErrorMessage name="name" class="text-red-500 text-sm" />
             </div>
 
             <div class="mb-4">
-                <label class="block text-gray-700 mb-2">Tipo de hábito</label>
+                <label class="block text-gray-700 dark:text-gray-200 mb-2">Tipo de hábito</label>
                 <div class="flex gap-4">
-                    <label class="flex items-center">
-                        <Field type="radio" name="type" value="binary" class="mr-2" />
+                    <label class="flex items-center text-gray-700 dark:text-gray-200">
+                        <Field type="radio" name="type" value="binary" class="mr-2 accent-blue-700 dark:accent-blue-400" />
                         Sí/No (Ej: ¿Hiciste ejercicio?)
                     </label>
-                    <label class="flex items-center">
-                        <Field type="radio" name="type" value="quantitative" class="mr-2" />
+                    <label class="flex items-center text-gray-700 dark:text-gray-200">
+                        <Field type="radio" name="type" value="quantitative" class="mr-2 accent-blue-700 dark:accent-blue-400" />
                         Cuantitativo (Ej: Vasos de agua)
                     </label>
                 </div>
@@ -101,22 +101,22 @@ const handleSubmit = async (values) => {
             </div>
 
             <div class="mb-4" v-if="values.type === 'quantitative'">
-                <label class="block text-gray-700 mb-2">Valor objetivo diario</label>
+                <label class="block text-gray-700 dark:text-gray-200 mb-2">Valor objetivo diario</label>
                 <Field 
                     name="targetValue" 
                     type="number" 
-                    class="w-full p-2 border rounded focus:ring-2 focus:ring-blue-400"
+                    class="w-full p-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-600 transition-colors"
                     min="1"
                 />
                 <ErrorMessage name="targetValue" class="text-red-500 text-sm" />
             </div>
 
             <div class="mb-4">
-                <label class="block text-gray-700 mb-2">Frecuencia</label>
+                <label class="block text-gray-700 dark:text-gray-200 mb-2">Frecuencia</label>
                 <Field 
                     as="select" 
                     name="frequencyType"
-                    class="w-full p-2 border rounded focus:ring-2 focus:ring-blue-400"
+                    class="w-full p-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-600 transition-colors"
                 >
                     <option value="daily">Diario</option>
                     <option value="weekly">Semanal</option>
@@ -126,16 +126,16 @@ const handleSubmit = async (values) => {
             </div>
 
             <div class="mb-4" v-if="values.frequencyType === 'custom'">
-                <label class="block text-gray-700 mb-2">Selecciona días</label>
+                <label class="block text-gray-700 dark:text-gray-200 mb-2">Selecciona días</label>
                 <div class="flex flex-wrap gap-4">
                     <label v-for="day in ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']" 
                         :key="day" 
-                        class="flex items-center">
+                        class="flex items-center text-gray-700 dark:text-gray-200">
                         <Field 
                             type="checkbox" 
                             name="customDays" 
                             :value="day.toLowerCase()" 
-                            class="mr-2"
+                            class="mr-2 accent-blue-700 dark:accent-blue-400"
                         />
                         {{ day }}
                     </label>
@@ -144,11 +144,11 @@ const handleSubmit = async (values) => {
             </div>
 
             <div class="mb-4">
-                <label class="block text-gray-700 mb-2">Duración (días)</label>
+                <label class="block text-gray-700 dark:text-gray-200 mb-2">Duración (días)</label>
                 <Field 
                     name="durationDays" 
                     type="number" 
-                    class="w-full p-2 border rounded focus:ring-2 focus:ring-blue-400"
+                    class="w-full p-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-600 transition-colors"
                     min="1"
                     step="1"
                 />
@@ -158,7 +158,7 @@ const handleSubmit = async (values) => {
             <div v-if="errorMessage" class="text-red-500 mb-4">{{ errorMessage }}</div>
             <button 
                 type="submit" 
-                class="w-full bg-blue-700 text-white py-2 px-4 rounded hover:bg-blue-800 transition"
+                class="w-full bg-blue-700 dark:bg-blue-800 text-white py-2 px-4 rounded hover:bg-blue-800 dark:hover:bg-blue-900 transition"
             >
                 Crear Hábito
             </button>
