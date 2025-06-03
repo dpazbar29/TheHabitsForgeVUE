@@ -36,6 +36,7 @@ const initialValues = {
 const habitsStore = useHabitsStore();
 const userStore = useUserStore();
 const errorMessage = ref('');
+const emit = defineEmits(['habit-created']);
 
 const handleSubmit = async (values) => {
     try {
@@ -56,6 +57,7 @@ const handleSubmit = async (values) => {
         };
 
         await habitsStore.createHabit(habitData);
+        emit('habit-created')
         errorMessage.value = '';
     } catch (error) {
         errorMessage.value = error.message;

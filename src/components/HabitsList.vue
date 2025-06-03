@@ -2,9 +2,11 @@
 import { useHabitsStore } from '../stores/habits';
 import { useUserStore } from '../stores/user';
 import { onMounted, onUnmounted } from 'vue';
+import { storeToRefs } from 'pinia';
 
 const habitsStore = useHabitsStore();
 const userStore = useUserStore();
+const { habits } = storeToRefs(habitsStore);
 let unsubscribe;
 
 onMounted(() => {
