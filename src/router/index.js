@@ -5,6 +5,7 @@ import Contacto from '../views/Contact.vue'
 import Perfil from '../views/Profile.vue'
 import Login from '../views/Login.vue'
 import Register from '../views/Register.vue'
+import { useUserStore } from '../stores/user'
 
 const routes = [
     { path: '/', name: 'Home', component: Home },
@@ -19,12 +20,18 @@ const router = createRouter({
     routes,
 })
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
     const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
-    const user = auth.currentUser
+    const userStore = useUserStore()
 
-    if (requiresAuth && !user) {
+    if (!userStore.authReady) {
+        await userStore.checkAuth()
+    }
+
+    if (requiresAuth && !userStore.userData) {
         next('/login')
+    } else if ((to.path === '/login' || to.path === '/register') && userStore.userData) {
+        next('/')
     } else {
         next()
     }

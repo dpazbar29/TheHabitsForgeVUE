@@ -12,6 +12,18 @@ import router from '../router'
 export const useUserStore = defineStore('user', () => {
     const userData = ref(null)
     const loadingUser = ref(false)
+    const authReady = ref(false)
+
+    //Verificar autenticación
+    function checkAuth() {
+        return new Promise((resolve) => {
+            onAuthStateChanged(auth, (user) => {
+                userData.value = user ? { email: user.email, uid: user.uid } : null
+                authReady.value = true
+                resolve(user)
+            })
+        })
+    }
 
     // Registrar usuario
     async function registerUser(email, password) {
@@ -56,18 +68,16 @@ export const useUserStore = defineStore('user', () => {
 
     // Mantener estado de autenticación al refrescar
     onAuthStateChanged(auth, (user) => {
-        if (user) {
-            userData.value = { email: user.email, uid: user.uid }
-        } else {
-            userData.value = null
-        }
+        userData.value = user ? { email: user.email, uid: user.uid } : null
     })
 
     return {
         userData,
         loadingUser,
+        authReady,
+        checkAuth,
         registerUser,
         loginUser,
-        logoutUser,
+        logoutUser
     }
 })
