@@ -45,7 +45,10 @@ export const useUserStore = defineStore('user', () => {
         loadingUser.value = true
         try {
             const { user } = await signInWithEmailAndPassword(auth, email, password)
-            userData.value = { email: user.email, uid: user.uid }
+            userData.value = { 
+                email: user.email, 
+                uid: user.uid,
+            }
             router.push('/')
         } catch (error) {
             userData.value = null
@@ -68,7 +71,10 @@ export const useUserStore = defineStore('user', () => {
 
     // Mantener estado de autenticación al refrescar
     onAuthStateChanged(auth, (user) => {
-        userData.value = user ? { email: user.email, uid: user.uid } : null
+        userData.value = user ? { 
+            email: user.email, 
+            uid: user.uid
+        } : null
     })
 
     return {

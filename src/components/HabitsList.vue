@@ -8,13 +8,13 @@ const habitsStore = useHabitsStore();
 const userStore = useUserStore();
 let unsubscribe;
 
-onMounted(() => {
-    unsubscribe = habitsStore.subscribeToUserHabits(userStore.userData.uid);
+onMounted(async () => {
+    if (userStore.userData?.uid) {
+        await habitsStore.retryFailedSyncs();
+        await habitsStore.syncWithFirestore(userStore.userData.uid);
+    }
 });
 
-onUnmounted(() => {
-    if (unsubscribe) unsubscribe();
-});
 </script>
 
 <template>

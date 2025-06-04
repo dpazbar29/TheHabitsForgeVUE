@@ -3,14 +3,26 @@ import { useUserStore } from '../stores/user'
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faMoon, faSun } from '@fortawesome/free-solid-svg-icons'
+import { useHabitsStore } from '../stores/habits'
 
+const habitsStore = useHabitsStore()
 const userStore = useUserStore()
 const router = useRouter()
 
-function handleLogout() {
-    userStore.logoutUser()
-    router.push('/')
+async function handleLogout() {
+    try {
+        const userId = userStore.userData?.uid;
+        
+        if (userId) {
+            await habitsStore.syncWithFirestore(userId);
+        }
+        
+        await userStore.logoutUser();
+        localStorage.removeItem('habits');
+        router.push('/');
+    } catch (error) {
+        alert(error.message);
+    }
 }
 
 const isDark = ref(false)

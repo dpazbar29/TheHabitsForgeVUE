@@ -35,7 +35,7 @@ const stats = computed(() => {
             </div>
 
             <div class="text-center">
-                <p class="text-3xl font-bold text-gray-900 dark:text-gray-100">{{ Math.max(...stats.currentStreaks) }}</p>
+                <p class="text-3xl font-bold text-gray-900 dark:text-gray-100">{{ stats.currentStreaks.length ? Math.max(...stats.currentStreaks) : 0 }}</p>
                 <p class="text-gray-600 dark:text-gray-400">Mejor racha actual</p>
             </div>
         </div>

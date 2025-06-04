@@ -1,16 +1,22 @@
 import { defineStore } from 'pinia';
-import { db } from '../firebase';
-import { collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot, query, where, arrayUnion, serverTimestamp } from 'firebase/firestore';
+import { v4 as uuidv4 } from 'uuid';
 
 export const useHabitsStore = defineStore('habits', {
     state: () => ({
-        habits: [],
+        habits: JSON.parse(localStorage.getItem('habits')) || [],
     }),
     actions: {
         // Crear nuevo hábito
         async createHabit(habitData) {
             try {
-                await addDoc(collection(db, 'habits'), habitData);
+                const newHabit = {
+                    id: uuidv4(),
+                    ...habitData,
+                    createdAt: new Date().toISOString()
+                };
+                
+                this.habits.push(newHabit);
+                this.persistHabits();
             } catch (error) {
                 throw new Error('Error creando hábito: ' + error.message);
             }
@@ -19,79 +25,132 @@ export const useHabitsStore = defineStore('habits', {
         // Eliminar hábito
         async deleteHabit(habitId) {
             try {
-                await deleteDoc(doc(db, 'habits', habitId));
+                // Limpiar de localStorage primero
+                this.habits = this.habits.filter(h => h.id !== habitId);
+                this.persistHabits();
+                
+                // Forzar sincronización inmediata (opcional)
+                if (navigator.onLine) {
+                    const { useUserStore } = await import('./user');
+                    const userStore = useUserStore();
+                    await this.syncWithFirestore(userStore.userData?.uid);
+                }
             } catch (error) {
                 throw new Error('Error eliminando hábito: ' + error.message);
             }
         },
 
-        // Suscripción a hábitos del usuario
-        subscribeToUserHabits(userId) {
-            const q = query(collection(db, 'habits'), where('userId', '==', userId));
-            return onSnapshot(q, (snapshot) => {
-                this.habits = snapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                }));
-            });
-        },
-
         // Marcar hábito
         async markHabit(habitId, value) {
             try {
-                const habitRef = doc(db, 'habits', habitId)
-                //Formato YYYY-MM-DD
-                const today = new Date().toISOString().split('T')[0]
-                await updateDoc(habitRef, {
-                    history: arrayUnion({
-                        date: today,
-                        value: value,
-                        status: value > 0 ? 'completed' : 'failed'
-                    })
+                const today = new Date().toISOString().split('T')[0];
+                const habit = this.habits.find(h => h.id === habitId);
+                
+                habit.history.push({
+                    date: today,
+                    value: value,
+                    status: value > 0 ? 'completed' : 'failed'
                 });
-
-                await this.calculateStreak(habitRef)
+                
+                this.calculateStreak(habit);
+                this.persistHabits();
             } catch (error) {
-                throw new Error('Error actualizando hábito: ' + error.message)
+                throw new Error('Error actualizando hábito: ' + error.message);
             }
         },
 
+        // Persistir en Local Storage
+        persistHabits() {
+            localStorage.setItem('habits', JSON.stringify(this.habits));
+        },
+
         // Calcular rachas
-        async calculateStreak(habitRef) {
-            const habit = this.habits.find(h => h.id === habitRef.id)
-            if (!habit) return
-
-            const sortedHistory = [...habit.history].sort((a, b) => new Date(a.date) - new Date(b.date))
-
-            let currentStreak = 0
-            let longestStreak = 0
-            let previousDate = null
+        calculateStreak(habit) {
+            const sortedHistory = [...habit.history].sort((a, b) => new Date(a.date) - new Date(b.date));
+            
+            let currentStreak = 0;
+            let longestStreak = 0;
+            let previousDate = null;
 
             sortedHistory.forEach(entry => {
                 if (entry.status === 'completed') {
-                    const entryDate = new Date(entry.date)
+                    const entryDate = new Date(entry.date);
 
                     if (!previousDate || entryDate.getTime() - previousDate.getTime() === 86400000) {
-                        currentStreak ++
+                        currentStreak++;
                     } else {
-                        currentStreak = 1
+                        currentStreak = 1;
                     }
 
-                    if (currentStreak > longestStreak) {
-                        longestStreak = currentStreak
-                    }
-
-                    previousDate = entryDate
+                    longestStreak = Math.max(longestStreak, currentStreak);
+                    previousDate = entryDate;
                 } else {
-                    currentStreak = 0
-                    previousDate = null
+                    currentStreak = 0;
+                    previousDate = null;
                 }
             });
 
-            await updateDoc(habitRef, {
-                currentStreak,
-                longestStreak: Math.max(habit.longestStreak, longestStreak)
-            });
+            habit.currentStreak = currentStreak;
+            habit.longestStreak = Math.max(habit.longestStreak, longestStreak);
+        },
+
+        async syncWithFirestore(userId) {
+            try {
+                const { db } = await import('../firebase');
+                const { collection, doc, setDoc, deleteDoc, writeBatch } = await import('firebase/firestore');
+                
+                const batch = writeBatch(db);
+                
+                // Paso 1: Sincronizar todos los hábitos locales
+                this.habits.forEach(habit => {
+                    const habitRef = doc(collection(db, 'habits'), habit.id);
+                    batch.set(habitRef, habit);
+                });
+                
+                // Paso 2: Obtener hábitos remotos y eliminar los no existentes localmente
+                const remoteHabits = await this.getRemoteHabits(userId);
+                const localIds = new Set(this.habits.map(h => h.id));
+                
+                remoteHabits.forEach(remoteHabit => {
+                    if (!localIds.has(remoteHabit.id)) {
+                        const habitRef = doc(collection(db, 'habits'), remoteHabit.id);
+                        batch.delete(habitRef);
+                    }
+                });
+                
+                await batch.commit();
+                
+            } catch (error) {
+                throw new Error('Error de sincronización: ' + error.message);
+            }
+        },
+
+        async getRemoteHabits(userId) {
+            const { db } = await import('../firebase');
+            const { collection, getDocs, query, where } = await import('firebase/firestore');
+            
+            const q = query(
+                collection(db, 'habits'),
+                where('userId', '==', userId)
+            );
+            
+            const snapshot = await getDocs(q);
+            return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        },
+
+        async queueFailedSync() {
+            const queue = JSON.parse(localStorage.getItem('syncQueue') || '[]');
+            queue.push({ timestamp: Date.now(), habits: this.habits });
+            localStorage.setItem('syncQueue', JSON.stringify(queue));
+        },
+
+        async retryFailedSyncs() {
+            const queue = JSON.parse(localStorage.getItem('syncQueue') || '[]');
+            while (queue.length > 0) {
+                const { habits } = queue.shift();
+                // Implementar lógica de reintento
+            }
+            localStorage.removeItem('syncQueue');
         }
     }
 });
