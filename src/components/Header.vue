@@ -34,7 +34,7 @@ function setDarkClass(value) {
 </script>
 
 <template>
-    <header class="bg-gray-800 dark:bg-gray-900 text-white dark:text-gray-100 px-6 py-4 flex justify-between items-center transition-colors">
+    <header class="bg-gray-800 dark:bg-gray-950 text-white dark:text-gray-100 px-6 py-4 flex justify-between items-center transition-colors">
         <div class="font-bold text-xl cursor-pointer hover:text-blue-300 dark:hover:text-blue-400 transition-colors" @click="router.push('/')">
             TheHabitsForge
         </div>
