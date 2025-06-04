@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 export const useHabitsStore = defineStore('habits', {
     state: () => ({
         habits: JSON.parse(localStorage.getItem('habits')) || [],
+        pendingSync: JSON.parse(localStorage.getItem('pendingSync')) || false
     }),
     actions: {
         // Crear nuevo hábito
@@ -25,16 +26,8 @@ export const useHabitsStore = defineStore('habits', {
         // Eliminar hábito
         async deleteHabit(habitId) {
             try {
-                // Limpiar de localStorage primero
                 this.habits = this.habits.filter(h => h.id !== habitId);
                 this.persistHabits();
-                
-                // Forzar sincronización inmediata (opcional)
-                if (navigator.onLine) {
-                    const { useUserStore } = await import('./user');
-                    const userStore = useUserStore();
-                    await this.syncWithFirestore(userStore.userData?.uid);
-                }
             } catch (error) {
                 throw new Error('Error eliminando hábito: ' + error.message);
             }
@@ -62,6 +55,8 @@ export const useHabitsStore = defineStore('habits', {
         // Persistir en Local Storage
         persistHabits() {
             localStorage.setItem('habits', JSON.stringify(this.habits));
+            this.pendingSync = true;
+            localStorage.setItem('pendingSync', JSON.stringify(true));
         },
 
         // Calcular rachas
@@ -97,31 +92,33 @@ export const useHabitsStore = defineStore('habits', {
         async syncWithFirestore(userId) {
             try {
                 const { db } = await import('../firebase');
-                const { collection, doc, setDoc, deleteDoc, writeBatch } = await import('firebase/firestore');
+                const { collection, doc, writeBatch } = await import('firebase/firestore');
                 
                 const batch = writeBatch(db);
-                
-                // Paso 1: Sincronizar todos los hábitos locales
+                const localIds = new Set(this.habits.map(h => h.id));
+
+                // Paso 1: Sincronizar hábitos locales
                 this.habits.forEach(habit => {
                     const habitRef = doc(collection(db, 'habits'), habit.id);
                     batch.set(habitRef, habit);
                 });
-                
-                // Paso 2: Obtener hábitos remotos y eliminar los no existentes localmente
+
+                // Paso 2: Obtener hábitos remotos y eliminar los que no existen localmente
                 const remoteHabits = await this.getRemoteHabits(userId);
-                const localIds = new Set(this.habits.map(h => h.id));
-                
                 remoteHabits.forEach(remoteHabit => {
                     if (!localIds.has(remoteHabit.id)) {
                         const habitRef = doc(collection(db, 'habits'), remoteHabit.id);
                         batch.delete(habitRef);
                     }
                 });
-                
+
                 await batch.commit();
-                
+                this.pendingSync = false;
+                localStorage.removeItem('pendingSync');
+
             } catch (error) {
-                throw new Error('Error de sincronización: ' + error.message);
+                console.error('Error de sincronización:', error);
+                this.queueFailedSync();
             }
         },
 

@@ -11,14 +11,12 @@ const router = useRouter()
 
 async function handleLogout() {
     try {
-        const userId = userStore.userData?.uid;
-        
-        if (userId) {
-            await habitsStore.syncWithFirestore(userId);
+        if (habitsStore.pendingSync) {
+            await habitsStore.syncWithFirestore(userStore.userData.uid);
         }
-        
         await userStore.logoutUser();
         localStorage.removeItem('habits');
+        localStorage.removeItem('pendingSync');
         router.push('/');
     } catch (error) {
         alert(error.message);

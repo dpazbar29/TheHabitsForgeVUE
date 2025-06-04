@@ -16,7 +16,9 @@ const app = initializeApp(firebaseConfig)
 // Nueva configuración con persistencia multi-tab
 export const db = initializeFirestore(app, {
     localCache: persistentLocalCache({
-        tabManager: persistentMultipleTabManager()
+        tabManager: persistentMultipleTabManager(),
+        // Deshabilitar sincronización automática
+        synchronizeTabs: false  
     })
 })
 

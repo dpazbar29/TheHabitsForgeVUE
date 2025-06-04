@@ -20,30 +20,17 @@ const habitsStore = useHabitsStore();
 const userStore = useUserStore();
 
 onMounted(() => {
-    window.addEventListener('beforeunload', (event) => {
-        if (userStore.userData?.uid) {
-            const syncData = {
-                userId: userStore.userData.uid,
-                habits: habitsStore.habits,
-                timestamp: new Date().toISOString()
-            };
-            
-            // Enviar datos incluso si el navegador cierra la pestaña
-            navigator.sendBeacon(
-                `https://firestore.googleapis.com/v1/projects/${import.meta.env.VITE_FIREBASE_PROJECT_ID}/databases/(default)/documents:commit`,
-                JSON.stringify({
-                    writes: habitsStore.habits.map(habit => ({
-                        update: {
-                            name: `projects/${import.meta.env.VITE_FIREBASE_PROJECT_ID}/databases/(default)/documents/habits/${habit.id}`,
-                            fields: {
-                                userId: { stringValue: userStore.userData.uid },
-                                name: { stringValue: habit.name },
-                                // ... otros campos
-                            }
-                        }
-                    }))
-                })
-            );
+    let isReload = false;
+
+    // Detectar si es recarga
+    window.addEventListener('beforeunload', () => {
+        isReload = performance.navigation.type === 1;
+    });
+
+    // Sincronizar solo en cierre real
+    window.addEventListener('pagehide', async () => {
+        if (!isReload && userStore.userData?.uid && habitsStore.pendingSync) {
+            await habitsStore.syncWithFirestore(userStore.userData.uid);
         }
     });
 });
