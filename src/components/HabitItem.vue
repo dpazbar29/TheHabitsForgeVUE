@@ -7,6 +7,10 @@ const props = defineProps({
     habit: {
         type: Object,
         required: true
+    },
+    showActions: { // NUEVA PROP
+        type: Boolean,
+        default: true
     }
 });
 
@@ -50,33 +54,36 @@ const deleteHabit = async () => {
             </div>
             
             <div class="flex items-center gap-4">
-                <div v-if="habit.type === 'quantitative'" class="flex items-center gap-2">
-                    <input
-                        v-model.number="currentValue"
-                        type="number"
-                        :min="1"
-                        :max="habit.targetValue"
-                        class="w-20 px-2 py-1 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-600 transition-colors"
-                        placeholder="Ej: 5"
-                    >
-                    <span class="text-gray-700 dark:text-gray-200">/ {{ habit.targetValue }}</span>
+                <!-- SOLO muestra los botones de marcar si showActions es true -->
+                <template v-if="showActions">
+                    <div v-if="habit.type === 'quantitative'" class="flex items-center gap-2">
+                        <input
+                            v-model.number="currentValue"
+                            type="number"
+                            :min="1"
+                            :max="habit.targetValue"
+                            class="w-20 px-2 py-1 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-600 transition-colors"
+                            placeholder="Ej: 5"
+                        >
+                        <span class="text-gray-700 dark:text-gray-200">/ {{ habit.targetValue }}</span>
+                        <button 
+                            @click="markCompleted"
+                            class="px-3 py-1 bg-green-500 dark:bg-green-600 text-white rounded hover:bg-green-600 dark:hover:bg-green-700 transition-colors"
+                        >
+                            ✔
+                        </button>
+                    </div>
+                    
                     <button 
+                        v-else
                         @click="markCompleted"
-                        class="px-3 py-1 bg-green-500 dark:bg-green-600 text-white rounded hover:bg-green-600 dark:hover:bg-green-700 transition-colors"
+                        class="px-4 py-2 bg-green-500 dark:bg-green-600 text-white rounded hover:bg-green-600 dark:hover:bg-green-700 transition-colors"
                     >
-                        ✔
+                        {{ habit.history.some(h => h.date === new Date().toISOString().split('T')[0]) ? '✅' : 'Marcar' }}
                     </button>
-                </div>
-                
-                <button 
-                    v-else
-                    @click="markCompleted"
-                    class="px-4 py-2 bg-green-500 dark:bg-green-600 text-white rounded hover:bg-green-600 dark:hover:bg-green-700 transition-colors"
-                >
-                    {{ habit.history.some(h => h.date === new Date().toISOString().split('T')[0]) ? '✅' : 'Marcar' }}
-                </button>
+                </template>
 
-                <!-- Botones de edición y eliminación -->
+                <!-- Botones de edición y eliminación (siempre visibles) -->
                 <div class="flex items-center gap-2">
                     <button 
                         @click="showEditModal = true"

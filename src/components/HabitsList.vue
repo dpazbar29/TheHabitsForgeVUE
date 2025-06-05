@@ -59,7 +59,8 @@ const filteredHabits = computed(() => {
         <HabitItem 
             v-for="habit in filteredHabits" 
             :key="habit.id" 
-            :habit="habit" 
+            :habit="habit"
+            :show-actions="filter === 'today'"
             :class="'bg-white dark:bg-gray-900 p-4 rounded-lg shadow-md transition-colors'"
         />
 
