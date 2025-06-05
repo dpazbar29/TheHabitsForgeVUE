@@ -12,6 +12,7 @@ export const useHabitsStore = defineStore('habits', {
             try {
                 const newHabit = {
                     id: uuidv4(),
+                    scheduledDays: [],
                     ...habitData,
                     createdAt: new Date().toISOString()
                 };
@@ -30,6 +31,25 @@ export const useHabitsStore = defineStore('habits', {
                 this.persistHabits();
             } catch (error) {
                 throw new Error('Error eliminando hábito: ' + error.message);
+            }
+        },
+
+        //Actualizar hábito
+        async updateHabit(habitId, updatedData) {
+            try {
+                const index = this.habits.findIndex(h => h.id === habitId);
+                if (index === -1) throw new Error('Hábito no encontrado');
+                
+                this.habits[index] = {
+                    ...this.habits[index],
+                    ...updatedData,
+                    updatedAt: new Date().toISOString()
+                };
+                
+                this.persistHabits();
+                return this.habits[index];
+            } catch (error) {
+                throw new Error('Error actualizando hábito: ' + error.message);
             }
         },
 

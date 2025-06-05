@@ -22,20 +22,35 @@ onMounted(async () => {
 });
 
 const filteredHabits = computed(() => {
-    if (props.filter === 'today') {
-        // Ejemplo: hábitos activos y programados para hoy
-        return habitsStore.habits.filter(habit =>
-            !habit.archived &&
-            habit.scheduledDays?.includes(new Date().getDay())
-        );
-    }
-    if (props.filter === 'all') {
-        return habitsStore.habits.filter(habit => !habit.archived);
-    }
-    if (props.filter === 'archived') {
-        return habitsStore.habits.filter(habit => habit.archived);
-    }
-    return habitsStore.habits;
+    const today = new Date();
+    const todayDay = today.getDay(); // 0 (Domingo) a 6 (Sábado)
+    const todayDate = today.toISOString().split('T')[0];
+
+    return habitsStore.habits.filter(habit => {
+        // Filtro archivados
+        if (props.filter === 'archived') return habit.archived;
+        if (habit.archived) return false;
+
+        // Filtro principal
+        switch(props.filter) {
+            case 'today':
+                // Verifica si está programado para hoy (o todos los días si no tiene programación)
+                const isScheduled = habit.scheduledDays?.length > 0 
+                    ? habit.scheduledDays.includes(todayDay)
+                    : true; // Hábitos antiguos sin scheduledDays se muestran siempre
+                
+                // Verifica si no tiene registro hoy
+                const notMarkedToday = !habit.history.some(entry => entry.date === todayDate);
+                
+                return isScheduled && notMarkedToday;
+
+            case 'all':
+                return true; // Todos no archivados
+
+            default:
+                return true;
+        }
+    });
 });
 </script>
 
@@ -49,7 +64,15 @@ const filteredHabits = computed(() => {
         />
 
         <div v-if="filteredHabits.length === 0" class="text-center text-gray-500 dark:text-gray-400 py-8 transition-colors">
-            No tienes hábitos registrados para esta sección.
+            <template v-if="filter === 'today'">
+                🎉 ¡No tienes hábitos pendientes para hoy!
+            </template>
+            <template v-else-if="filter === 'archived'">
+                📁 No hay hábitos archivados
+            </template>
+            <template v-else>
+                🚀 ¡Crea tu primer hábito para comenzar!
+            </template>
         </div>
     </div>
 </template>
