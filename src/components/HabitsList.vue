@@ -23,29 +23,26 @@ onMounted(async () => {
 
 const filteredHabits = computed(() => {
     const today = new Date();
-    const todayDay = today.getDay(); // 0 (Domingo) a 6 (Sábado)
+    const todayDay = today.getDay();
     const todayDate = today.toISOString().split('T')[0];
 
     return habitsStore.habits.filter(habit => {
-        // Filtro archivados
-        if (props.filter === 'archived') return habit.archived;
+        if (props.filter === 'archived') {
+            return habit.archived;
+        }
+        
         if (habit.archived) return false;
 
-        // Filtro principal
         switch(props.filter) {
             case 'today':
-                // Verifica si está programado para hoy (o todos los días si no tiene programación)
                 const isScheduled = habit.scheduledDays?.length > 0 
                     ? habit.scheduledDays.includes(todayDay)
-                    : true; // Hábitos antiguos sin scheduledDays se muestran siempre
-                
-                // Verifica si no tiene registro hoy
+                    : true;
                 const notMarkedToday = !habit.history.some(entry => entry.date === todayDate);
-                
                 return isScheduled && notMarkedToday;
 
             case 'all':
-                return true; // Todos no archivados
+                return true;
 
             default:
                 return true;
@@ -61,6 +58,7 @@ const filteredHabits = computed(() => {
             :key="habit.id" 
             :habit="habit"
             :show-actions="filter === 'today'"
+            :is-archived-tab="filter === 'archived'"
             :class="'bg-white dark:bg-gray-900 p-4 rounded-lg shadow-md transition-colors'"
         />
 

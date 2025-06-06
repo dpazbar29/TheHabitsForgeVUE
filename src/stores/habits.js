@@ -53,6 +53,20 @@ export const useHabitsStore = defineStore('habits', {
             }
         },
 
+        //Cambiar el estado de archivado
+        async toggleArchiveHabit(habitId) {
+            try {
+                const habit = this.habits.find(h => h.id === habitId);
+                if (!habit) throw new Error('Hábito no encontrado');
+                
+                habit.archived = !habit.archived;
+                this.persistHabits();
+                return habit;
+            } catch (error) {
+                throw new Error('Error archivando hábito: ' + error.message);
+            }
+        },
+
         // Marcar hábito
         async markHabit(habitId, value) {
             try {

@@ -8,9 +8,13 @@ const props = defineProps({
         type: Object,
         required: true
     },
-    showActions: { // NUEVA PROP
+    showActions: {
         type: Boolean,
         default: true
+    },
+    isArchivedTab: {
+        type: Boolean,
+        default: false
     }
 });
 
@@ -36,10 +40,21 @@ const deleteHabit = async () => {
         }
     }
 };
+
+const toggleArchive = async () => {
+    try {
+        await habitsStore.toggleArchiveHabit(props.habit.id);
+    } catch (error) {
+        alert(error.message);
+    }
+};
 </script>
 
 <template>
-    <div class="bg-white dark:bg-gray-900 p-4 rounded-lg shadow mb-4 transition-colors">
+    <div :class="[
+        'bg-white dark:bg-gray-900 p-4 rounded-lg shadow mb-4 transition-colors',
+        habit.archived ? 'opacity-70 border-2 border-dashed border-gray-300 dark:border-gray-700' : ''
+    ]">
         <div class="flex justify-between items-center">
             <div>
                 <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ habit.name }}</h3>
@@ -54,8 +69,7 @@ const deleteHabit = async () => {
             </div>
             
             <div class="flex items-center gap-4">
-                <!-- SOLO muestra los botones de marcar si showActions es true -->
-                <template v-if="showActions">
+                <template v-if="showActions && !habit.archived">
                     <div v-if="habit.type === 'quantitative'" class="flex items-center gap-2">
                         <input
                             v-model.number="currentValue"
@@ -83,8 +97,21 @@ const deleteHabit = async () => {
                     </button>
                 </template>
 
-                <!-- Botones de edición y eliminación (siempre visibles) -->
                 <div class="flex items-center gap-2">
+                    <!-- Botón de archivar/desarchivar -->
+                    <button 
+                        @click="toggleArchive"
+                        class="p-2 text-yellow-500 dark:text-yellow-400 hover:text-yellow-600 dark:hover:text-yellow-300 transition-colors"
+                        :title="habit.archived ? 'Reactivar hábito' : 'Archivar hábito'"
+                    >
+                        <svg v-if="!habit.archived" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
+                        </svg>
+                        <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                        </svg>
+                    </button>
+
                     <button 
                         @click="showEditModal = true"
                         class="p-2 text-blue-500 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
