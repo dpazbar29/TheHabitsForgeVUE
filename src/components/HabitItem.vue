@@ -57,7 +57,14 @@ const toggleArchive = async () => {
     ]">
         <div class="flex justify-between items-center">
             <div>
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ habit.name }}</h3>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    <router-link 
+                        :to="`/habits/${habit.id}`"
+                        class="hover:text-blue-500 hover:underline transition-colors"
+                    >
+                        {{ habit.name }}
+                    </router-link>
+                </h3>
                 <div class="flex items-center gap-2 mt-2">
                     <span class="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-sm">
                         🔥 {{ habit.currentStreak }} días

@@ -5,6 +5,7 @@ import Contacto from '../views/Contact.vue'
 import Perfil from '../views/Profile.vue'
 import Login from '../views/Login.vue'
 import Register from '../views/Register.vue'
+import HabitDetails from '../views/HabitsDetails.vue'
 import { useUserStore } from '../stores/user'
 
 const routes = [
@@ -13,6 +14,7 @@ const routes = [
     { path: '/perfil', name: 'Perfil', component: Perfil, meta: { requiresAuth: true } },
     { path: '/login', name: 'Login', component: Login },
     { path: '/register', name: 'Register', component: Register },
+    { path: '/habits/:id', name: 'HabitDetails', component: HabitDetails, meta: { requiresAuth: true } },
 ]
 
 const router = createRouter({

@@ -6,6 +6,41 @@ export const useHabitsStore = defineStore('habits', {
         habits: JSON.parse(localStorage.getItem('habits')) || [],
         pendingSync: JSON.parse(localStorage.getItem('pendingSync')) || false
     }),
+    getters: {
+        // Obtener hábito por ID
+        getHabitById: (state) => (id) => {
+            return state.habits.find(habit => habit.id === id);
+        },
+        
+        // Hábitos activos (no archivados)
+        activeHabits: (state) => {
+            return state.habits.filter(habit => !habit.archived);
+        },
+        
+        // Hábitos archivados
+        archivedHabits: (state) => {
+            return state.habits.filter(habit => habit.archived);
+        },
+        
+        // Estado de completado hoy
+        todaysCompletionStatus: (state) => {
+            const today = new Date().toISOString().split('T')[0];
+            return state.habits.reduce((acc, habit) => {
+                acc[habit.id] = habit.history.some(h => h.date === today && h.status === 'completed');
+                return acc;
+            }, {});
+        },
+        
+        // Hábitos agrupados por categoría (si existe la propiedad)
+        habitsByCategory: (state) => {
+            return state.habits.reduce((acc, habit) => {
+                const category = habit.category || 'Sin categoría';
+                if (!acc[category]) acc[category] = [];
+                acc[category].push(habit);
+                return acc;
+            }, {});
+        }
+    },
     actions: {
         // Crear nuevo hábito
         async createHabit(habitData) {
@@ -34,7 +69,7 @@ export const useHabitsStore = defineStore('habits', {
             }
         },
 
-        //Actualizar hábito
+        // Actualizar hábito
         async updateHabit(habitId, updatedData) {
             try {
                 const index = this.habits.findIndex(h => h.id === habitId);
@@ -53,7 +88,7 @@ export const useHabitsStore = defineStore('habits', {
             }
         },
 
-        //Cambiar el estado de archivado
+        // Cambiar el estado de archivado
         async toggleArchiveHabit(habitId) {
             try {
                 const habit = this.habits.find(h => h.id === habitId);
@@ -131,13 +166,13 @@ export const useHabitsStore = defineStore('habits', {
                 const batch = writeBatch(db);
                 const localIds = new Set(this.habits.map(h => h.id));
 
-                // Paso 1: Sincronizar hábitos locales
+                // Sincronizar hábitos locales
                 this.habits.forEach(habit => {
                     const habitRef = doc(collection(db, 'habits'), habit.id);
                     batch.set(habitRef, habit);
                 });
 
-                // Paso 2: Obtener hábitos remotos y eliminar los que no existen localmente
+                // Obtener hábitos remotos y eliminar los que no existen localmente
                 const remoteHabits = await this.getRemoteHabits(userId);
                 remoteHabits.forEach(remoteHabit => {
                     if (!localIds.has(remoteHabit.id)) {

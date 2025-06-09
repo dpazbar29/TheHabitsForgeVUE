@@ -44,7 +44,7 @@ const tabs = [
             <button 
                 v-if="activeTab !== 'archived'"
                 @click="showModal = true"
-                class="bg-blue-700 dark:bg-blue-800 text-white px-6 py-2 rounded-lg hover:bg-blue-800 dark:hover:bg-blue-900 transition-colors"
+                class="bg-blue-700 dark:bg-blue-800 text-white px-6 py-2 rounded-lg hover:bg-blue-600 dark:hover:bg-blue-900 transition-colors"
             >
                 + Nuevo Hábito
             </button>
