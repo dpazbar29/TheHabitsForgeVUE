@@ -16,6 +16,7 @@
     "@vee-validate/yup": "^4.15.0",
     "firebase": "^11.8.1",
     "flowbite-vue": "^0.2.1",
+    "onesignal-vue": "^2.4.2",
     "pinia": "^3.0.2",
     "uuid": "^11.1.0",
     "vee-validate": "^4.15.0",
