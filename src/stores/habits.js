@@ -229,7 +229,6 @@ export const useHabitsStore = defineStore('habits', {
                     });
 
                     await batch.commit();
-                    console.log('Sincronización retry exitosa para:', item.timestamp);
                 } catch (error) {
                     console.error('Error en reintento:', error);
                     newQueue.push(item);
@@ -250,7 +249,31 @@ export const useHabitsStore = defineStore('habits', {
                 this.pendingSync = true;
                 localStorage.setItem('pendingSync', JSON.stringify(true));
             }
-        }
+        },
 
+        async deleteAllUserHabits(userId) {
+            try {
+                const { db } = await import('../firebase');
+                const { collection, query, where, getDocs, deleteDoc } = await import('firebase/firestore');
+                
+                const q = query(collection(db, 'habits'), where('userId', '==', userId));
+                const snapshot = await getDocs(q);
+                
+                const deletePromises = snapshot.docs.map(doc => deleteDoc(doc.ref));
+                await Promise.all(deletePromises);
+                
+                this.habits = this.habits.filter(h => h.userId !== userId);
+                this.persistHabits();
+            } catch (error) {
+                throw new Error('Error eliminando hábitos: ' + error.message);
+            }
+        },
+
+        clearLocalData() {
+            this.habits = [];
+            localStorage.removeItem('habits');
+            localStorage.removeItem('pendingSync');
+            localStorage.removeItem('syncQueue');
+        }
     }
 });

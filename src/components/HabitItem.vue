@@ -91,7 +91,7 @@ const toggleArchive = async () => {
                             @click="markCompleted"
                             class="px-3 py-1 bg-green-500 dark:bg-green-600 text-white rounded hover:bg-green-600 dark:hover:bg-green-700 transition-colors"
                         >
-                            ✔
+                            Marcar
                         </button>
                     </div>
                     

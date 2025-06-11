@@ -3,8 +3,10 @@ import { ref } from 'vue';
 import CreateHabitForm from '../components/CreateHabitForm.vue';
 import HabitList from '../components/HabitsList.vue';
 import StatsPanel from '../components/StatsPanel.vue';
+import DeleteAccountModal from '../components/DeleteAccountModal.vue';
 
 const showModal = ref(false);
+const showDeleteModal = ref(false);
 const activeTab = ref('today');
 
 const tabs = [
@@ -16,8 +18,16 @@ const tabs = [
 
 <template>
     <div class="max-w-3xl mx-auto px-4 py-8 min-h-screen flex flex-col bg-white dark:bg-gray-900 transition-colors">
-        <h1 class="text-3xl font-bold text-blue-800 dark:text-blue-300 mb-8 transition-colors">Mi Perfil</h1>
-    
+        <div class="flex justify-between items-start mb-8">
+            <h1 class="text-3xl font-bold text-blue-800 dark:text-blue-300 transition-colors">Mi Perfil</h1>
+            <button
+                class="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-500 transition-colors"
+                @click="showDeleteModal = true"
+            >
+                Eliminar Cuenta
+            </button>
+        </div>
+
         <StatsPanel class="mb-8" />
 
         <div class="flex space-x-2 mb-8">
@@ -62,9 +72,10 @@ const tabs = [
                 <CreateHabitForm @habit-created="showModal = false" />
             </div>
         </div>
+
+        <DeleteAccountModal v-if="showDeleteModal" @close="showDeleteModal = false" />
     </div>
 </template>
-
 
 <style>
 .modal-enter-active,
@@ -76,4 +87,3 @@ const tabs = [
     opacity: 0;
 }
 </style>
-
