@@ -8,7 +8,6 @@ const successMsg = ref('')
 const errorMsg = ref('')
 
 const onSubmit = async (values, { resetForm }) => {
-    // Aquí podrías enviar los datos a tu backend, email, etc.
     try {
         successMsg.value = '¡Mensaje enviado correctamente!'
         errorMsg.value = ''

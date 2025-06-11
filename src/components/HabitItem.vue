@@ -105,7 +105,6 @@ const toggleArchive = async () => {
                 </template>
 
                 <div class="flex items-center gap-2">
-                    <!-- Botón de archivar/desarchivar -->
                     <button 
                         @click="toggleArchive"
                         class="p-2 text-yellow-500 dark:text-yellow-400 hover:text-yellow-600 dark:hover:text-yellow-300 transition-colors"
@@ -142,7 +141,6 @@ const toggleArchive = async () => {
             </div>
         </div>
 
-        <!-- Modal de edición -->
         <div v-if="showEditModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div class="bg-white dark:bg-gray-900 rounded-lg w-full max-w-md p-6 relative transition-colors">
                 <button 

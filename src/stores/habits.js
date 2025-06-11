@@ -7,22 +7,18 @@ export const useHabitsStore = defineStore('habits', {
         pendingSync: JSON.parse(localStorage.getItem('pendingSync')) || false
     }),
     getters: {
-        // Obtener hábito por ID
         getHabitById: (state) => (id) => {
             return state.habits.find(habit => habit.id === id);
         },
         
-        // Hábitos activos (no archivados)
         activeHabits: (state) => {
             return state.habits.filter(habit => !habit.archived);
         },
         
-        // Hábitos archivados
         archivedHabits: (state) => {
             return state.habits.filter(habit => habit.archived);
         },
         
-        // Estado de completado hoy
         todaysCompletionStatus: (state) => {
             const today = new Date().toISOString().split('T')[0];
             return state.habits.reduce((acc, habit) => {
@@ -31,7 +27,6 @@ export const useHabitsStore = defineStore('habits', {
             }, {});
         },
         
-        // Hábitos agrupados por categoría (si existe la propiedad)
         habitsByCategory: (state) => {
             return state.habits.reduce((acc, habit) => {
                 const category = habit.category || 'Sin categoría';
@@ -42,7 +37,6 @@ export const useHabitsStore = defineStore('habits', {
         }
     },
     actions: {
-        // Crear nuevo hábito
         async createHabit(habitData) {
             try {
                 const newHabit = {
@@ -59,7 +53,6 @@ export const useHabitsStore = defineStore('habits', {
             }
         },
 
-        // Eliminar hábito
         async deleteHabit(habitId) {
             try {
                 this.habits = this.habits.filter(h => h.id !== habitId);
@@ -69,7 +62,6 @@ export const useHabitsStore = defineStore('habits', {
             }
         },
 
-        // Actualizar hábito
         async updateHabit(habitId, updatedData) {
             try {
                 const index = this.habits.findIndex(h => h.id === habitId);
@@ -88,7 +80,6 @@ export const useHabitsStore = defineStore('habits', {
             }
         },
 
-        // Cambiar el estado de archivado
         async toggleArchiveHabit(habitId) {
             try {
                 const habit = this.habits.find(h => h.id === habitId);
@@ -102,7 +93,6 @@ export const useHabitsStore = defineStore('habits', {
             }
         },
 
-        // Marcar hábito
         async markHabit(habitId, value) {
             try {
                 const today = new Date().toISOString().split('T')[0];
@@ -121,14 +111,12 @@ export const useHabitsStore = defineStore('habits', {
             }
         },
 
-        // Persistir en Local Storage
         persistHabits() {
             localStorage.setItem('habits', JSON.stringify(this.habits));
             this.pendingSync = true;
             localStorage.setItem('pendingSync', JSON.stringify(true));
         },
 
-        // Calcular rachas
         calculateStreak(habit) {
             const sortedHistory = [...habit.history].sort((a, b) => new Date(a.date) - new Date(b.date));
             
@@ -166,13 +154,11 @@ export const useHabitsStore = defineStore('habits', {
                 const batch = writeBatch(db);
                 const localIds = new Set(this.habits.map(h => h.id));
 
-                // Sincronizar hábitos locales
                 this.habits.forEach(habit => {
                     const habitRef = doc(collection(db, 'habits'), habit.id);
                     batch.set(habitRef, habit);
                 });
 
-                // Obtener hábitos remotos y eliminar los que no existen localmente
                 const remoteHabits = await this.getRemoteHabits(userId);
                 remoteHabits.forEach(remoteHabit => {
                     if (!localIds.has(remoteHabit.id)) {
@@ -212,11 +198,59 @@ export const useHabitsStore = defineStore('habits', {
 
         async retryFailedSyncs() {
             const queue = JSON.parse(localStorage.getItem('syncQueue') || '[]');
-            while (queue.length > 0) {
-                const { habits } = queue.shift();
-                // Implementar lógica de reintento
+            const newQueue = [];
+            
+            for (const item of queue) {
+                try {
+                    const { db } = await import('../firebase');
+                    const { collection, doc, writeBatch, getDocs, query, where } = await import('firebase/firestore');
+                    
+                    const batch = writeBatch(db);
+                    const localIds = new Set(item.habits.map(h => h.id));
+
+                    item.habits.forEach(habit => {
+                        const habitRef = doc(collection(db, 'habits'), habit.id);
+                        batch.set(habitRef, habit);
+                    });
+
+                    const userId = item.habits[0]?.userId;
+                    if (!userId) throw new Error('Usuario no identificado en los hábitos en cola');
+
+                    const q = query(
+                        collection(db, 'habits'),
+                        where('userId', '==', userId)
+                    );
+                    
+                    const snapshot = await getDocs(q);
+                    snapshot.docs.forEach(docSnapshot => {
+                        if (!localIds.has(docSnapshot.id)) {
+                            batch.delete(docSnapshot.ref);
+                        }
+                    });
+
+                    await batch.commit();
+                    console.log('Sincronización retry exitosa para:', item.timestamp);
+                } catch (error) {
+                    console.error('Error en reintento:', error);
+                    newQueue.push(item);
+                    
+                    if (!item.retryCount) item.retryCount = 1;
+                    else item.retryCount++;
+                    
+                    if (item.retryCount > 5) {
+                        console.error('Reintentos agotados para:', item.timestamp);
+                        continue;
+                    }
+                }
             }
-            localStorage.removeItem('syncQueue');
+
+            localStorage.setItem('syncQueue', JSON.stringify(newQueue));
+            
+            if (newQueue.length > 0) {
+                this.pendingSync = true;
+                localStorage.setItem('pendingSync', JSON.stringify(true));
+            }
         }
+
     }
 });

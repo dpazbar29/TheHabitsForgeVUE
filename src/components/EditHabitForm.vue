@@ -1,8 +1,9 @@
 <script setup>
+import { ref } from 'vue';
 import { useHabitsStore } from '../stores/habits';
 import { Form, Field, ErrorMessage } from 'vee-validate';
-import * as yup from 'yup';
-import { ref, watch } from 'vue';
+import { toTypedSchema } from '@vee-validate/yup';
+import { editHabitSchema } from '../validation/editHabitSchema';
 
 const daysOfWeek = [
     { name: 'Lun', value: 1 },
@@ -24,29 +25,6 @@ const props = defineProps({
 const emit = defineEmits(['close']);
 const habitsStore = useHabitsStore();
 const errorMessage = ref('');
-
-const schema = yup.object({
-    name: yup.string().required('El nombre es obligatorio'),
-    type: yup.string().required('Selecciona el tipo').oneOf(['binary', 'quantitative']),
-    targetValue: yup.number().when('type', {
-        is: 'quantitative',
-        then: (schema) => schema.required('Ingresa un valor objetivo').min(1, 'Mínimo 1')
-    }),
-    frequencyType: yup.string()
-        .required('Selecciona frecuencia')
-        .oneOf(['daily', 'weekly', 'custom']),
-    customDays: yup.array()
-        .of(yup.number().min(0).max(6))
-        .when('frequencyType', {
-            is: 'custom',
-            then: (schema) => schema.min(1, 'Selecciona al menos un día'),
-            otherwise: (schema) => schema.notRequired()
-        }),
-    durationDays: yup.number()
-        .required('La duración es obligatoria')
-        .min(1, 'Mínimo un día')
-        .integer('Debe ser un número entero')
-});
 
 const initialValues = ref({
     name: props.habit.name,
@@ -94,7 +72,7 @@ const getScheduledDays = (values) => {
     <div class="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-md transition-colors">
         <h3 class="text-xl font-bold text-blue-800 dark:text-blue-300 mb-4">Editar Hábito</h3>
         <Form 
-            :validation-schema="schema" 
+            :validation-schema="toTypedSchema(editHabitSchema)" 
             :initial-values="initialValues" 
             @submit="handleSubmit"
             v-slot="{ values }"

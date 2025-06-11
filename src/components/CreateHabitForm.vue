@@ -1,9 +1,10 @@
 <script setup>
 import { ref } from 'vue';
+import { Form, Field, ErrorMessage } from 'vee-validate';
+import { toTypedSchema } from '@vee-validate/yup';
+import { createHabitSchema } from '../validation/createHabitSchema';
 import { useHabitsStore } from '../stores/habits';
 import { useUserStore } from '../stores/user';
-import { Form, Field, ErrorMessage } from 'vee-validate';
-import * as yup from 'yup';
 
 const daysOfWeek = [
     { name: 'Lun', value: 1 },
@@ -14,29 +15,6 @@ const daysOfWeek = [
     { name: 'Sáb', value: 6 },
     { name: 'Dom', value: 0 }
 ];
-
-const schema = yup.object({
-    name: yup.string().required('El nombre es obligatorio'),
-    type: yup.string().required('Selecciona el tipo').oneOf(['binary', 'quantitative']),
-    targetValue: yup.number().when('type', {
-        is: 'quantitative',
-        then: (schema) => schema.required('Ingresa un valor objetivo').min(1, 'Mínimo 1')
-    }),
-    frequencyType: yup.string()
-        .required('Selecciona frecuencia')
-        .oneOf(['daily', 'weekly', 'custom']),
-    customDays: yup.array()
-        .of(yup.number().min(0).max(6))
-        .when('frequencyType', {
-            is: 'custom',
-            then: (schema) => schema.min(1, 'Selecciona al menos un día'),
-            otherwise: (schema) => schema.notRequired()
-        }),
-    durationDays: yup.number()
-        .required('La duración es obligatoria')
-        .min(1, 'Mínimo un día')
-        .integer('Debe ser un número entero')
-});
 
 const initialValues = {
     name: '',
@@ -50,9 +28,13 @@ const initialValues = {
 const habitsStore = useHabitsStore();
 const userStore = useUserStore();
 const errorMessage = ref('');
+const isSubmitting = ref(false);
 const emit = defineEmits(['habit-created']);
 
 const handleSubmit = async (values) => {
+    errorMessage.value = '';
+    isSubmitting.value = true;
+    
     try {
         const habitData = {
             userId: userStore.userData.uid,
@@ -73,9 +55,10 @@ const handleSubmit = async (values) => {
 
         await habitsStore.createHabit(habitData);
         emit('habit-created');
-        errorMessage.value = '';
     } catch (error) {
-        errorMessage.value = error.message;
+        errorMessage.value = error.message || 'Error al crear el hábito';
+    } finally {
+        isSubmitting.value = false;
     }
 };
 
@@ -90,115 +73,115 @@ const getScheduledDays = (values) => {
 </script>
 
 <template>
-    <div class="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-md mb-8 transition-colors">
-        <h3 class="text-xl font-bold text-blue-800 dark:text-blue-300 mb-4">Nuevo Hábito</h3>
+    <div class="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-md transition-colors">
+        <h3 class="text-xl font-bold text-blue-800 dark:text-blue-300 mb-6">Nuevo Hábito</h3>
+        
         <Form 
-            :validation-schema="schema" 
+            :validation-schema="toTypedSchema(createHabitSchema)" 
             :initial-values="initialValues" 
             @submit="handleSubmit"
             v-slot="{ values }"
+            class="space-y-4"
         >
-            <div class="mb-4">
-                <label class="block text-gray-700 dark:text-gray-200 mb-2">Nombre del hábito</label>
-                <Field 
-                    name="name" 
-                    type="text" 
-                    class="w-full p-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-600 transition-colors"
+            <div>
+                <label class="block mb-2 font-medium text-blue-700 dark:text-blue-300">Nombre del hábito</label>
+                <Field
+                    name="name"
+                    type="text"
                     placeholder="Ej: Beber agua"
+                    class="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-600 transition-colors"
                 />
-                <ErrorMessage name="name" class="text-red-500 text-sm" />
+                <ErrorMessage name="name" class="text-red-500 dark:text-red-400 text-sm mt-1" />
             </div>
 
-            <div class="mb-4">
-                <label class="block text-gray-700 dark:text-gray-200 mb-2">Tipo de hábito</label>
+            <div>
+                <label class="block mb-2 font-medium text-blue-700 dark:text-blue-300">Tipo</label>
                 <div class="flex gap-4">
-                <label class="flex items-center text-gray-700 dark:text-gray-200">
-                    <Field 
-                    type="radio" 
-                    name="type" 
-                    value="binary" 
-                    class="mr-2 accent-blue-700 dark:accent-blue-400" 
-                    />
-                    Sí/No (Ej: ¿Hiciste ejercicio?)
-                </label>
-                <label class="flex items-center text-gray-700 dark:text-gray-200">
-                    <Field 
-                    type="radio" 
-                    name="type" 
-                    value="quantitative" 
-                    class="mr-2 accent-blue-700 dark:accent-blue-400" 
-                    />
-                    Cuantitativo (Ej: Vasos de agua)
-                </label>
-                </div>
-                <ErrorMessage name="type" class="text-red-500 text-sm" />
-            </div>
-
-            <div class="mb-4" v-if="values.type === 'quantitative'">
-                <label class="block text-gray-700 dark:text-gray-200 mb-2">Valor objetivo diario</label>
-                <Field 
-                    name="targetValue" 
-                    type="number" 
-                    class="w-full p-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-600 transition-colors"
-                    min="1"
-                />
-                <ErrorMessage name="targetValue" class="text-red-500 text-sm" />
-            </div>
-
-            <div class="mb-4">
-                <label class="block text-gray-700 dark:text-gray-200 mb-2">Frecuencia</label>
-                <Field 
-                    as="select" 
-                    name="frequencyType"
-                    class="w-full p-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-600 transition-colors"
-                >
-                    <option value="daily">Diario (todos los días)</option>
-                    <option value="weekly">Semanal (todos los días de la semana)</option>
-                    <option value="custom">Días específicos</option>
-                </Field>
-                <ErrorMessage name="frequencyType" class="text-red-500 text-sm" />
-            </div>
-
-            <div class="mb-4" v-if="values.frequencyType === 'custom'">
-                <label class="block text-gray-700 dark:text-gray-200 mb-2">Selecciona días</label>
-                <div class="grid grid-cols-7 gap-2">
-                    <label 
-                        v-for="day in daysOfWeek" 
-                        :key="day.value"
-                        class="flex flex-col items-center text-sm cursor-pointer"
-                    >
-                        <Field 
-                            type="checkbox" 
-                            name="customDays" 
-                            :value="day.value" 
-                            class="hidden peer"
+                    <label class="flex items-center">
+                        <Field
+                            type="radio"
+                            name="type"
+                            value="binary"
+                            class="mr-2 text-blue-600 dark:text-blue-400"
                         />
-                        <div class="w-10 h-10 flex items-center justify-center rounded-full border-2 border-gray-300 dark:border-gray-600 peer-checked:border-blue-600 peer-checked:bg-blue-600 peer-checked:text-white transition-colors">
-                            {{ day.name }}
-                        </div>
+                        <span class="dark:text-gray-200">Sí/No</span>
+                    </label>
+                    <label class="flex items-center">
+                        <Field
+                            type="radio"
+                            name="type"
+                            value="quantitative"
+                            class="mr-2 text-blue-600 dark:text-blue-400"
+                        />
+                        <span class="dark:text-gray-200">Cantitativo</span>
                     </label>
                 </div>
-                <ErrorMessage name="customDays" class="text-red-500 text-sm" />
             </div>
 
-            <div class="mb-4">
-                <label class="block text-gray-700 dark:text-gray-200 mb-2">Duración (días)</label>
-                <Field 
-                    name="durationDays" 
-                    type="number" 
-                    class="w-full p-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-600 transition-colors"
+            <div v-if="values.type === 'quantitative'">
+                <label class="block mb-2 font-medium text-blue-700 dark:text-blue-300">Objetivo diario</label>
+                <Field
+                    name="targetValue"
+                    type="number"
                     min="1"
-                    step="1"
+                    class="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-600 transition-colors"
                 />
-                <ErrorMessage name="durationDays" class="text-red-500 text-sm" />
+                <ErrorMessage name="targetValue" class="text-red-500 dark:text-red-400 text-sm mt-1" />
             </div>
 
-            <div v-if="errorMessage" class="text-red-500 mb-4">{{ errorMessage }}</div>
-            <button 
-                type="submit" 
-                class="w-full bg-blue-700 dark:bg-blue-800 text-white py-2 px-4 rounded hover:bg-blue-800 dark:hover:bg-blue-900 transition"
+            <div>
+                <label class="block mb-2 font-medium text-blue-700 dark:text-blue-300">Frecuencia</label>
+                <div class="space-y-2">
+                    <select 
+                        name="frequencyType"
+                        class="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-600 transition-colors"
+                    >
+                        <option value="daily">Diario</option>
+                        <option value="weekly">Semanal</option>
+                        <option value="custom">Personalizado</option>
+                    </select>
+                    
+                    <div v-if="values.frequencyType === 'custom'" class="grid grid-cols-3 gap-2">
+                        <label
+                            v-for="day in daysOfWeek"
+                            :key="day.value"
+                            class="flex items-center p-2 rounded border border-gray-200 dark:border-gray-700"
+                        >
+                            <Field
+                                type="checkbox"
+                                name="customDays"
+                                :value="day.value"
+                                class="mr-2 text-blue-600 dark:text-blue-400"
+                            />
+                            <span class="dark:text-gray-200">{{ day.name }}</span>
+                        </label>
+                    </div>
+                    <ErrorMessage name="customDays" class="text-red-500 dark:text-red-400 text-sm mt-1" />
+                </div>
+            </div>
+
+            <div>
+                <label class="block mb-2 font-medium text-blue-700 dark:text-blue-300">Duración (días)</label>
+                <Field
+                    name="durationDays"
+                    type="number"
+                    min="1"
+                    class="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-600 transition-colors"
+                />
+                <ErrorMessage name="durationDays" class="text-red-500 dark:text-red-400 text-sm mt-1" />
+            </div>
+
+            <div v-if="errorMessage" class="text-red-500 dark:text-red-400 text-center">
+                {{ errorMessage }}
+            </div>
+
+            <button
+                type="submit"
+                :disabled="isSubmitting"
+                class="w-full py-2 px-4 bg-blue-700 dark:bg-blue-800 text-white rounded-lg font-semibold hover:bg-blue-800 dark:hover:bg-blue-900 transition-colors disabled:opacity-60"
             >
-                Crear Hábito
+                <span v-if="isSubmitting">Creando hábito...</span>
+                <span v-else>Crear Hábito</span>
             </button>
         </Form>
     </div>

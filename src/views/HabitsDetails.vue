@@ -11,7 +11,6 @@ const habit = computed(() =>
     habitsStore.getHabitById(habitId)
 )
 
-// Lógica Heatmap
 const heatmapDates = computed(() => {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
@@ -78,7 +77,6 @@ const monthLabels = computed(() => {
             </button>
         </div>
 
-        <!-- Estadísticas -->
         <div class="grid grid-cols-2 gap-4 mb-8">
             <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
                 <h3 class="text-sm text-gray-500 mb-1">Racha actual</h3>
@@ -94,11 +92,9 @@ const monthLabels = computed(() => {
             </div>
         </div>
 
-        <!-- Heatmap -->
         <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
             <div class="heatmap-container overflow-x-auto pb-4">
                 <div class="inline-flex flex-col gap-1">
-                    <!-- Leyenda de meses -->
                     <div class="flex mb-2 ml-12 relative" style="height: 16px;">
                         <span
                             v-for="(label, idx) in monthLabels"
@@ -114,9 +110,7 @@ const monthLabels = computed(() => {
                         </span>
                     </div>
 
-                    <!-- Grilla -->
                     <div class="flex">
-                        <!-- Días de la semana -->
                         <div class="flex flex-col gap-1 mr-2 text-xs text-gray-500 dark:text-gray-400">
                             <div 
                                 v-for="(dayName, dayIndex) in ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']" 
@@ -127,7 +121,6 @@ const monthLabels = computed(() => {
                             </div>
                         </div>
 
-                        <!-- Semanas -->
                         <div class="flex gap-1">
                             <div 
                                 v-for="(weekDates, weekIndex) in heatmapDates" 

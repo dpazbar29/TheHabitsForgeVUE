@@ -14,7 +14,6 @@ export const useUserStore = defineStore('user', () => {
     const loadingUser = ref(false)
     const authReady = ref(false)
 
-    //Verificar autenticación
     function checkAuth() {
         return new Promise((resolve) => {
             onAuthStateChanged(auth, (user) => {
@@ -25,7 +24,6 @@ export const useUserStore = defineStore('user', () => {
         })
     }
 
-    // Registrar usuario
     async function registerUser(email, password) {
         loadingUser.value = true
         try {
@@ -40,7 +38,6 @@ export const useUserStore = defineStore('user', () => {
         }
     }
 
-    // Login usuario
     async function loginUser(email, password) {
         loadingUser.value = true
         try {
@@ -58,7 +55,6 @@ export const useUserStore = defineStore('user', () => {
         }
     }
 
-    // Logout usuario
     async function logoutUser() {
         try {
             await signOut(auth)
@@ -69,7 +65,6 @@ export const useUserStore = defineStore('user', () => {
         }
     }
 
-    // Mantener estado de autenticación al refrescar
     onAuthStateChanged(auth, (user) => {
         userData.value = user ? { 
             email: user.email, 
