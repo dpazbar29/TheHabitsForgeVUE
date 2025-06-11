@@ -132,31 +132,37 @@ const getScheduledDays = (values) => {
             <div>
                 <label class="block mb-2 font-medium text-blue-700 dark:text-blue-300">Frecuencia</label>
                 <div class="space-y-2">
-                    <select 
+                    <Field 
                         name="frequencyType"
+                        as="select"
                         class="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-600 transition-colors"
                     >
                         <option value="daily">Diario</option>
                         <option value="weekly">Semanal</option>
                         <option value="custom">Personalizado</option>
-                    </select>
+                    </Field>
                     
-                    <div v-if="values.frequencyType === 'custom'" class="grid grid-cols-3 gap-2">
-                        <label
-                            v-for="day in daysOfWeek"
-                            :key="day.value"
-                            class="flex items-center p-2 rounded border border-gray-200 dark:border-gray-700"
-                        >
-                            <Field
-                                type="checkbox"
-                                name="customDays"
-                                :value="day.value"
-                                class="mr-2 text-blue-600 dark:text-blue-400"
-                            />
-                            <span class="dark:text-gray-200">{{ day.name }}</span>
-                        </label>
+                    <div class="mb-4" v-if="values.frequencyType === 'custom'">
+                        <label class="block text-gray-700 dark:text-gray-200 mb-2">Selecciona días</label>
+                        <div class="grid grid-cols-7 gap-2">
+                            <label 
+                                v-for="day in daysOfWeek" 
+                                :key="day.value"
+                                class="flex flex-col items-center text-sm cursor-pointer"
+                            >
+                                <Field 
+                                    type="checkbox" 
+                                    name="customDays" 
+                                    :value="day.value" 
+                                    class="hidden peer"
+                                />
+                                <div class="w-10 h-10 flex items-center justify-center rounded-full border-2 border-gray-300 dark:border-gray-600 peer-checked:border-blue-600 peer-checked:bg-blue-600 peer-checked:text-white transition-colors dark:text-white">
+                                    {{ day.name }}
+                                </div>
+                            </label>
+                        </div>
+                        <ErrorMessage name="customDays" class="text-red-500 text-sm" />
                     </div>
-                    <ErrorMessage name="customDays" class="text-red-500 dark:text-red-400 text-sm mt-1" />
                 </div>
             </div>
 
