@@ -11,6 +11,8 @@ import {
 } from 'firebase/auth'
 import router from '../router'
 import { useHabitsStore } from './habits'
+import { db } from '../firebase'
+import { doc, setDoc, getDoc, deleteDoc } from 'firebase/firestore'
 
 export const useUserStore = defineStore('user', () => {
     const userData = ref(null)
@@ -21,30 +23,48 @@ export const useUserStore = defineStore('user', () => {
 
     function checkAuth() {
         return new Promise((resolve) => {
-            onAuthStateChanged(auth, (user) => {
-                userData.value = user ? { 
-                    email: user.email, 
-                    uid: user.uid 
-                } : null
+            onAuthStateChanged(auth, async (user) => {
+                if(user) {
+                    const docRef = doc(db, "users", user.uid);
+                    const docSnap = await getDoc(docRef);
+                    
+                    userData.value = { 
+                        email: user.email, 
+                        uid: user.uid,
+                        allowDailyEmail: docSnap.exists() ? docSnap.data().allowDailyEmail : false
+                    }
+                } else {
+                    userData.value = null
+                }
                 authReady.value = true
                 resolve(user)
             })
         })
     }
 
-    async function registerUser(email, password) {
-        loadingUser.value = true
-        try {
-            const { user } = await createUserWithEmailAndPassword(auth, email, password)
-            userData.value = { email: user.email, uid: user.uid }
-            router.push('/')
-        } catch (error) {
-            userData.value = null
-            alert(error.message)
-        } finally {
-            loadingUser.value = false
+    async function registerUser(email, password, allowDailyEmail = false) {
+    loadingUser.value = true
+    try {
+        const { user } = await createUserWithEmailAndPassword(auth, email, password)
+        
+        await setDoc(doc(db, "users", user.uid), {
+            email: user.email,
+            allowDailyEmail: allowDailyEmail
+        });
+
+        userData.value = { 
+            email: user.email, 
+            uid: user.uid,
+            allowDailyEmail: allowDailyEmail 
         }
+        router.push('/')
+    } catch (error) {
+        userData.value = null
+        alert(error.message)
+    } finally {
+        loadingUser.value = false
     }
+}
 
     async function loginUser(email, password) {
         loadingUser.value = true
@@ -74,30 +94,36 @@ export const useUserStore = defineStore('user', () => {
     }
 
     async function deleteAccount(password) {
-        deleteLoading.value = true
-        deleteError.value = null
+        deleteLoading.value = true;
+        deleteError.value = null;
         
         try {
-            const user = auth.currentUser
-            if (!user) throw new Error('No hay usuario autenticado')
+            const user = auth.currentUser;
+            if (!user) throw new Error('No hay usuario autenticado');
 
-            const credential = EmailAuthProvider.credential(user.email, password)
-            await reauthenticateWithCredential(user, credential)
+            const credential = EmailAuthProvider.credential(user.email, password);
+            await reauthenticateWithCredential(user, credential);
 
-            const habitsStore = useHabitsStore()
-            await habitsStore.deleteAllUserHabits(user.uid)
+            await deleteDoc(doc(db, "users", user.uid));
 
-            await user.delete()
+            const habitsStore = useHabitsStore();
+            await habitsStore.deleteAllUserHabits(user.uid);
 
-            userData.value = null
-            habitsStore.clearLocalData()
-            localStorage.clear()
-            router.push('/login')
+            await user.delete();
+
+            userData.value = null;
+            habitsStore.clearLocalData();
+            localStorage.clear();
+            router.push('/login');
         } catch (error) {
-            deleteError.value = mapAuthError(error.code)
-            throw error
+            if (error.code === 'auth/wrong-password') {
+                deleteError.value = 'Contraseña incorrecta';
+            } else {
+                deleteError.value = mapAuthError(error.code);
+            }
+            throw error;
         } finally {
-            deleteLoading.value = false
+            deleteLoading.value = false;
         }
     }
 

@@ -13,4 +13,5 @@ export const registerSchema = yup.object({
         .string()
         .oneOf([yup.ref('password')], 'Las contraseñas no coinciden')
         .required('Confirma tu contraseña'),
+    allowDailyEmail: yup.boolean(),
 });

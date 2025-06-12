@@ -16,7 +16,9 @@ const confirmDelete = async () => {
         habitsStore.clearLocalData();
         localStorage.clear();
         emit('close');
+        router.push('/login');
     } catch (error) {
+
     }
 };
 

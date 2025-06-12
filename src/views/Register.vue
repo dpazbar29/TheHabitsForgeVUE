@@ -15,7 +15,7 @@ const showConfirmPassword = ref(false)
 const onSubmit = async (values, { resetForm }) => {
     errorMsg.value = ''
     try {
-        await userStore.registerUser(values.email, values.password)
+        await userStore.registerUser(values.email, values.password, values.allowDailyEmail)
         resetForm()
         router.push('/login')
     } catch (error) {
@@ -93,6 +93,21 @@ const onSubmit = async (values, { resetForm }) => {
                     <ErrorMessage name="confirmPassword" class="text-red-500 dark:text-red-400 text-sm mt-1" />
                 </div>
                 <div v-if="errorMsg" class="text-red-500 dark:text-red-400 text-center mb-4">{{ errorMsg }}</div>
+
+                <div class="mb-4 flex items-center">
+                    <Field
+                        type="checkbox"
+                        id="allowDailyEmail"
+                        name="allowDailyEmail"
+                        :value="true"
+                        :unchecked-value="false"
+                        class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                    />
+                    <label for="allowDailyEmail" class="ml-2 text-sm text-gray-600 dark:text-gray-300">
+                        Deseo recibir recordatorios diarios por correo
+                    </label>
+                </div>
+
                 <button
                     type="submit"
                     :disabled="userStore.loadingUser"
