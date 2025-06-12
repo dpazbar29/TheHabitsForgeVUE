@@ -5,4 +5,4 @@
   node_bundler = "esbuild"
 
 [functions."send-daily-emails"]
-  schedule = "32 15 * * *"
+  schedule = "34 15 * * *"
