@@ -28,22 +28,36 @@ exports.handler = async () => {
         }
     });
 
-    for (const doc of snapshot.docs) {
-        const user = doc.data();
+    const today = new Date().toISOString().split('T')[0];
+
+    for (const userDoc of snapshot.docs) {
+        const user = userDoc.data();
+        
         try {
-            await transporter.sendMail({
-                from: `"The Habits Forge" <${process.env.VITE_GMAIL_USER}>`,
-                to: user.email,
-                subject: "Tu Recordatorio Diario",
-                html: `<p>¡Hola! Este es tu recordatorio diario.</p>`
+            const habitsSnapshot = await db.collection('habits')
+                .where('userId', '==', userDoc.id)
+                .get();
+
+            const hasPendingHabits = habitsSnapshot.docs.some(doc => {
+                const habit = doc.data();
+                return !habit.history.some(h => h.date === today && h.status === 'completed');
             });
+
+            if (hasPendingHabits) {
+                await transporter.sendMail({
+                    from: `"The Habits Forge" <${process.env.VITE_GMAIL_USER}>`,
+                    to: user.email,
+                    subject: "Tienes hábitos pendientes hoy",
+                    html: `<p>¡Hola! Aún tienes hábitos por completar hoy. Acuérdate de comprobarlos a diario para que no se te pasen ¡NO PIERDAS LA RACHA!</p>`
+                });
+            }
         } catch (err) {
-            console.error(`Error enviando a ${user.email}:`, err);
+            console.error(`Error procesando usuario ${user.email}:`, err);
         }
     }
 
     return {
         statusCode: 200,
-        body: 'Correos enviados exitosamente'
+        body: 'Proceso de envío completado'
     };
 };
