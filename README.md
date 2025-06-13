@@ -1,5 +1,48 @@
-# Vue 3 + Vite
+# TheHabitsForge
 
-This template should help get you started developing with Vue 3 in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+TheHabitsForge, la aplicación de seguimiento de hábitos.
 
-Learn more about IDE Support for Vue in the [Vue Docs Scaling up Guide](https://vuejs.org/guide/scaling-up/tooling.html#ide-support).
+---
+
+## Tabla de Contenidos
+
+- [Descripción](#descripción)
+- [Características](#características)
+- [Instalación](#instalación)
+
+---
+
+## Descripción
+
+Este proyecto tiene como objetivo ayudar a las personas en su día a día a seguir ciertos hábitos para mejorar la calidad de vida con diferentes funciones explicadas a continuación.
+
+---
+
+## Características
+
+- Creación de hábitos.
+- Edición de hábitos.
+- Eliminación de hábitos.
+- Archivador de hábitos.
+- Estadísticas sencillas de todos los hábitos.
+- Estadísticas específicas de cada hábito.
+- Mapa de calor de cada hábito.
+- Recordatorios opcionales diarios a las 19:00 si queda algún hábito pendiente.
+
+---
+
+## Instalación
+
+```bash
+    git clone https://github.com/dpazbar29/TheHabitsForgeVUE
+    
+    cd TheHabitsForgeVUE
+
+    npm install
+```
+
+---
+
+## Repositorio
+
+Proyecto: [https://github.com/dpazbar29/TheHabitsForgeVUE](https://github.com/dpazbar29/TheHabitsForgeVUE)
