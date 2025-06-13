@@ -4,7 +4,22 @@ import CreateHabitForm from '../components/CreateHabitForm.vue';
 import HabitList from '../components/HabitsList.vue';
 import StatsPanel from '../components/StatsPanel.vue';
 import DeleteAccountModal from '../components/DeleteAccountModal.vue';
+import { useUserStore } from '../stores/user'
+import { doc, updateDoc } from 'firebase/firestore'
+import { db } from '../firebase'
+import { computed } from 'vue'
 
+const userStore = useUserStore()
+
+async function toggleDailyEmail(e) {
+    const checked = e.target.checked
+    if (!userStore.userData) return
+
+    const userRef = doc(db, "users", userStore.userData.uid)
+    await updateDoc(userRef, { allowDailyEmail: checked })
+
+    userStore.userData.allowDailyEmail = checked
+}
 const showModal = ref(false);
 const showDeleteModal = ref(false);
 const activeTab = ref('today');
@@ -44,6 +59,19 @@ const tabs = [
             >
                 {{ tab.label }}
             </button>
+        </div>
+
+        <div class="mb-8 flex items-center">
+            <input
+                type="checkbox"
+                id="allowDailyEmail"
+                :checked="userStore.userData?.allowDailyEmail"
+                @change="toggleDailyEmail"
+                class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+            />
+            <label for="allowDailyEmail" class="ml-2 text-sm text-gray-600 dark:text-gray-300">
+                Recibir recordatorio diario por correo
+            </label>
         </div>
 
         <div class="flex justify-between items-center mb-8">
