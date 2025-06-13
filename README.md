@@ -46,3 +46,5 @@ Este proyecto tiene como objetivo ayudar a las personas en su día a día a segu
 ## Repositorio
 
 Proyecto: [https://github.com/dpazbar29/TheHabitsForgeVUE](https://github.com/dpazbar29/TheHabitsForgeVUE)
+
+Despliegue: [thehabtisforge.netlify.app](thehabtisforge.netlify.app)
